@@ -39,6 +39,18 @@ export interface LoadedData {
   tls?: tls[]
 }
 
+// What api/checkUpdate answers with. The server caches the lookup and answers
+// with an empty `latest` when GitHub could not be reached. `method` is how this
+// installation can take the update: in place under systemd, by pulling the
+// image under docker, or by hand from the shell.
+export interface UpdateInfo {
+  current: string
+  latest: string
+  url: string
+  hasUpdate: boolean
+  method: 'systemd' | 'docker' | 'manual'
+}
+
 // The duplicate-tag check works on any of the four lists without caring which
 // one it was handed.
 type Tagged = Inbound | Outbound | Srv | Endpoint
@@ -53,6 +65,9 @@ const Data = defineStore('Data', {
     // The core is stopped on purpose. Polled with the rest so every page can
     // say so, not just the one that turned it on.
     maintenance: false,
+    // A newer release, looked up once per page load.
+    update: <UpdateInfo | null>null,
+    updateVisible: false,
     onlines: <Onlines>{inbound: [], outbound: [], user: []},
     config: <Config>{},
     inbounds: <Inbound[]>[],
@@ -80,6 +95,10 @@ const Data = defineStore('Data', {
           this.setNewData(msg.obj)
         }
       }
+    },
+    async checkUpdate() {
+      const msg = await HttpUtils.get<UpdateInfo>('api/checkUpdate')
+      if (msg.success && msg.obj?.hasUpdate) this.update = msg.obj
     },
     setNewData(data: LoadedData) {
       this.lastLoad = Math.floor((new Date()).getTime()/1000)

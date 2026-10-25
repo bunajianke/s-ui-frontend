@@ -250,6 +250,18 @@
                     >
                       v{{ tilesData.sys?.appVersion }}
                     </v-chip>
+                    <v-chip
+                      v-if="Data().update"
+                      v-tooltip:top="$t('update.hint', { current: Data().update?.current })"
+                      density="compact"
+                      color="info"
+                      variant="flat"
+                      prepend-icon="mdi-update"
+                      class="ms-1"
+                      @click="Data().updateVisible = true"
+                    >
+                      v{{ Data().update?.latest }}
+                    </v-chip>
                   </v-col>
                   <v-col cols="3">
                     {{ $t('main.info.uptime') }}
