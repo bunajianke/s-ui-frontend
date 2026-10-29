@@ -70,9 +70,12 @@
 .mn-client-actions > .v-btn:not(.v-btn--icon) { flex: 1; }
 .mn-client-actions .v-btn--icon { flex: 0 0 44px; }
 .mn-client-table { border: 1px solid var(--mn-line); border-radius: 14px !important; box-shadow: none !important; }
-.mn-client-table th { color: rgb(var(--mn-muted)); font-weight: 500 !important; font-size: 13px; }
+.mn-client-table table { min-width: 1440px; }
+.mn-client-table th { color: rgb(var(--mn-muted)); font-weight: 500 !important; font-size: 13px; white-space: nowrap; }
 .mn-client-table td { padding-block: 14px !important; }
 .mn-client-table td:first-child { max-width: 260px; min-width: 180px; }
+.mn-client-table td:nth-child(3) { min-width: 160px; max-width: 240px; overflow-wrap: anywhere; }
+.mn-client-table td:nth-child(6) { min-width: 180px; white-space: nowrap; }
 .mn-client-table .mn-client-name { font-size: 14px; }
 .mn-client-table .v-icon--clickable { min-width: 32px; min-height: 36px; }
 .mn-client-table .v-data-table__wrapper { scrollbar-width: thin; scrollbar-color: rgba(var(--v-theme-on-surface), .2) transparent; }
