@@ -15,6 +15,10 @@ Respect safe areas, 44px controls, keyboard focus and dark theme. Long identifie
 must wrap; prefer the user's human-readable remark in listings. Desktop tables
 remain useful for dense account management.
 
+Clients use the full content width beside the navigation drawer, with the same
+responsive gutters. Keep Home and reading-oriented screens at their bounded
+width; dense user tables should not inherit that reading-width constraint.
+
 Keep additions in `MagicNetOverview.vue` and `styles/magicnet.scss` where possible
 to make upstream merges reviewable. Never label local accounting as CloudCone's
 official billable usage. Do not alter credentials or quota semantics for presentation.

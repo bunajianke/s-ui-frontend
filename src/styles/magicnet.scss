@@ -9,6 +9,7 @@
 :focus-visible { outline: 2px solid rgb(var(--v-theme-primary)); outline-offset: 4px; }
 .v-main { margin: 0 !important; min-width: 0; }
 .mn-page-shell { width: min(1240px, 100%); margin-inline: auto; padding: 32px; min-width: 0; }
+.mn-page-shell--wide { width: 100%; }
 .v-application .v-btn { text-transform: none; letter-spacing: 0; border-radius: 10px; box-shadow: none; }
 .v-application .v-btn--size-default { min-height: 44px; }
 .v-application .v-app-bar { border-bottom: 1px solid var(--mn-line); box-shadow: none !important; }
