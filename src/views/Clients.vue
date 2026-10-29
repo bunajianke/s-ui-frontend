@@ -268,6 +268,8 @@
           v-if="item.volume > 0"
           :model-value="Math.min(percent(item), 100)"
           :color="percentColor(item)"
+          bg-color="on-surface"
+          :bg-opacity="0.08"
           height="5"
         />
       </div>
@@ -405,22 +407,25 @@
         <template #item.volume="{ item }">
           <div
             v-tooltip:top="'↓' + HumanReadable.sizeFormat(item.down) + ' - ' + HumanReadable.sizeFormat(item.up) + '↑'"
-            class="text-start"
+            class="mn-traffic-cell"
           >
-            <v-chip
-              size="small"
-              :color="item.volume==0 ? 'success' : item.volume<=(item.up + item.down)? 'error': ''"
-              label
+            <div
+              class="mn-traffic-value"
+              :class="{ 'text-error': item.volume > 0 && item.volume <= item.up + item.down }"
             >
-              {{ HumanReadable.sizeFormat(item.up + item.down) + ' / ' + (item.volume == 0 ? $t('unlimited') : HumanReadable.sizeFormat(item.volume)) }}
-            </v-chip>
+              <strong>{{ HumanReadable.sizeFormat(item.up + item.down) }}</strong>
+              <span>/ {{ item.volume == 0 ? $t('unlimited') : HumanReadable.sizeFormat(item.volume) }}</span>
+            </div>
+            <v-progress-linear
+              v-if="item.volume > 0"
+              :model-value="Math.min(percent(item), 100)"
+              :color="percentColor(item)"
+              bg-color="on-surface"
+              :bg-opacity="0.08"
+              height="4"
+              rounded
+            />
           </div>
-          <v-progress-linear
-            v-if="item.volume>0"
-            :model-value="percent(item)"
-            :color="percentColor(item)"
-            bottom
-          />
         </template>
         <template #item.expiry="{ item }">
           <div class="text-start">

@@ -80,6 +80,10 @@
 .mn-client-table .mn-client-name { font-size: 14px; }
 .mn-client-table .v-icon--clickable { min-width: 32px; min-height: 36px; }
 .mn-client-table .v-data-table__wrapper { scrollbar-width: thin; scrollbar-color: rgba(var(--v-theme-on-surface), .2) transparent; }
+.mn-traffic-cell { display: grid; gap: 8px; width: max-content; max-width: 100%; }
+.mn-traffic-value { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; font-variant-numeric: tabular-nums; line-height: 1.4; }
+.mn-traffic-value strong { font-size: 14px; font-weight: 600; }
+.mn-traffic-value span { color: rgb(var(--mn-muted)); font-size: 13px; }
 .mn-empty { padding: 32px 24px; color: rgb(var(--mn-muted)); text-align: center; }
 .mn-editor-dialog .v-overlay__content > .v-card { display: flex; flex-direction: column; max-height: 90dvh; }
 .mn-editor-dialog .v-card-title { padding: 20px 24px; flex-shrink: 0; }

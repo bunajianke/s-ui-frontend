@@ -19,6 +19,11 @@ Clients use the full content width beside the navigation drawer, with the same
 responsive gutters. Keep Home and reading-oriented screens at their bounded
 width; dense user tables should not inherit that reading-width constraint.
 
+Traffic values use plain tabular figures, with the quota muted. A neutral grey
+track sits directly below and matches the value's width; reserve semantic color
+for actual usage. Use the same neutral track on mobile so unused quota never
+looks like a full green bar.
+
 Keep additions in `MagicNetOverview.vue` and `styles/magicnet.scss` where possible
 to make upstream merges reviewable. Never label local accounting as CloudCone's
 official billable usage. Do not alter credentials or quota semantics for presentation.
