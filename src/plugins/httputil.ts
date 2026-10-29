@@ -1,4 +1,5 @@
 import api from './api'
+import { isCancel } from 'axios'
 import { i18n } from '@/locales'
 import router from '@/router'
 import { push } from 'notivue'
@@ -97,13 +98,17 @@ function isMsg(obj: unknown): obj is Msg {
   return Object.hasOwn(obj as object,'success') && Object.hasOwn(obj as object,'msg') && Object.hasOwn(obj as object, 'obj')
 }
 
-const HttpUtils = {
-  async get<T = unknown>(url: string, data: object = {}, options: object = {}): Promise<Msg<T>> {
+// Share only simultaneous, equivalent reads. Nothing is cached after the
+// response settles, so the next poll always asks the server for fresh data.
+const pendingReads = new Map<string, Promise<Msg<unknown>>>()
+
+async function read<T>(url: string, data: object, options: object): Promise<Msg<T>> {
     let msg: Msg<T>
     try {
         const resp = await api.get(url, { params: data, ...options })
         msg = _respToMsg<T>(resp)
     } catch (e: unknown) {
+        if (isCancel(e)) return _objectlessMsg<T>(false, "")
         const err = e as RequestError
         if (_sessionExpired(err?.response?.status, err?.response?.data?.msg)) {
             push.error({ title: i18n.global.t('invalidLogin') })
@@ -114,6 +119,22 @@ const HttpUtils = {
     }
     _handleMsg(msg)
     return msg
+}
+
+const HttpUtils = {
+  get<T = unknown>(url: string, data: object = {}, options: object = {}): Promise<Msg<T>> {
+    // Explicit signals, headers, response types, etc. belong to that caller.
+    // Do not share a request with independently configured cancellation.
+    if (Object.keys(options).length) return read<T>(url, data, options)
+    const params = Object.fromEntries(Object.entries(data).sort(([a], [b]) => a.localeCompare(b)))
+    const key = api.getUri({ url, params })
+    const pending = pendingReads.get(key)
+    if (pending) return pending as Promise<Msg<T>>
+    const request = read<T>(url, data, options)
+    pendingReads.set(key, request)
+    const clear = () => { if (pendingReads.get(key) === request) pendingReads.delete(key) }
+    void request.then(clear, clear)
+    return request
   },
   async post<T = unknown>(url: string, data: object | null, options: AxiosRequestConfig | undefined = undefined): Promise<Msg<T>> {
     let msg: Msg<T>
@@ -121,6 +142,7 @@ const HttpUtils = {
         const resp = await api.post(url, data, options)
         msg = _respToMsg<T>(resp)
     } catch (e: unknown) {
+        if (isCancel(e)) return _objectlessMsg<T>(false, "")
         const err = e as RequestError
         if (_sessionExpired(err?.response?.status, err?.response?.data?.msg)) {
             push.error({ title: i18n.global.t('invalidLogin') })
