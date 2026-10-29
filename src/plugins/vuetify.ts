@@ -37,7 +37,12 @@ export default createVuetify({
       light: {
         colors: {
           error: colors.red.accent2,
-          background: colors.grey.lighten4,
+          background: '#F5F6F8',
+          surface: '#FFFFFF',
+          primary: '#2563EB',
+          success: '#16794B',
+          warning: '#A45A00',
+          'on-surface': '#172033',
         },
       },
       dark: {

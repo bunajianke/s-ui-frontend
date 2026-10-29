@@ -10,6 +10,24 @@
       @toggle-drawer="toggleDrawer"
     />
     <default-view />
+    <nav
+      v-if="isMobile"
+      class="mn-mobile-nav"
+      :aria-label="$t('magicnet.navigation')"
+    >
+      <router-link to="/">
+        <v-icon
+          icon="mdi-home-outline"
+          size="23"
+        />{{ $t('pages.home') }}
+      </router-link>
+      <router-link to="/clients">
+        <v-icon
+          icon="mdi-account-multiple-outline"
+          size="23"
+        />{{ $t('pages.clients') }}
+      </router-link>
+    </nav>
   </v-app>
 </template>
 

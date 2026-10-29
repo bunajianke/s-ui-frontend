@@ -1,9 +1,13 @@
 <template>
-  <v-app-bar :elevation="5">
-    <v-icon
+  <v-app-bar
+    :elevation="0"
+    height="64"
+  >
+    <v-btn
       v-if="isMobile"
       :aria-label="$t('a11y.menu')"
       icon="mdi-menu"
+      variant="text"
       @click="$emit('toggleDrawer')"
     />
     <span
@@ -12,7 +16,7 @@
     />
     <v-app-bar-title
       :text="$t(<string>route.name)"
-      class="align-center text-center "
+      class="text-start"
     />
     <!-- A stopped core is invisible from the panel otherwise, and the flag
          survives a reboot, so it has to be said on every page. -->

@@ -1,5 +1,23 @@
 
 <template>
+  <header class="mn-page-heading">
+    <div><h1>{{ $t('pages.clients') }}</h1></div>
+    <v-btn
+      color="primary"
+      prepend-icon="mdi-plus"
+      @click="showModal(0)"
+    >
+      {{ $t('magicnet.addUser') }}
+    </v-btn>
+  </header>
+  <v-text-field
+    v-model="search"
+    class="mn-search"
+    :label="$t('magicnet.searchUsers')"
+    prepend-inner-icon="mdi-magnify"
+    hide-details
+    clearable
+  />
   <ClientModal 
     :id="modal.id"
     v-model="modal.visible"
@@ -72,17 +90,10 @@
     </v-card>
   </v-dialog>
   <v-row
+    class="mn-clients-toolbar"
     justify="center"
     align="center"
   >
-    <v-col cols="auto">
-      <v-btn
-        color="primary"
-        @click="showModal(0)"
-      >
-        {{ $t('actions.add') }}
-      </v-btn>
-    </v-col>
     <v-col cols="auto">
       <v-menu
         v-model="actionMenu"
@@ -215,11 +226,138 @@
       </v-menu>
     </v-col>
   </v-row>
-  <v-row>
+  <section
+    v-if="smAndDown"
+    class="mn-client-list"
+    :aria-label="$t('pages.clients')"
+  >
+    <article
+      v-for="item in mobileClients"
+      :key="item.id"
+      class="mn-surface mn-client-card"
+    >
+      <header class="mn-client-card-head">
+        <div>
+          <h2 class="mn-client-name">
+            {{ clientLabel(item) }}
+          </h2>
+          <div class="mn-client-meta">
+            <span v-if="item.group">{{ item.group }}</span>
+            <span
+              v-if="isOnline(item.name).value"
+              class="is-online"
+            >{{ $t('online') }}</span>
+            <span v-else-if="!item.enable">{{ $t('disable') }}</span>
+            <span v-if="item.expiry > 0">{{ HumanReadable.remainedDays(item.expiry) }}</span>
+          </div>
+        </div>
+        <v-switch
+          :model-value="item.enable"
+          :aria-label="$t('enable') + ' ' + clientLabel(item)"
+          :loading="toggling[item.id]"
+          :disabled="toggling[item.id]"
+          color="success"
+          density="compact"
+          hide-details
+          @update:model-value="(val:any) => toggleEnable(item, !!val)"
+        />
+      </header>
+      <div class="mn-client-usage">
+        <div><strong>{{ item.up + item.down === 0 ? '0 B' : HumanReadable.sizeFormat(item.up + item.down) }}</strong><span>/ {{ item.volume ? HumanReadable.sizeFormat(item.volume) : $t('unlimited') }}</span></div>
+        <v-progress-linear
+          v-if="item.volume > 0"
+          :model-value="Math.min(percent(item), 100)"
+          :color="percentColor(item)"
+          height="5"
+        />
+      </div>
+      <footer class="mn-client-actions">
+        <v-btn
+          variant="tonal"
+          prepend-icon="mdi-pencil-outline"
+          @click="showModal(item.id)"
+        >
+          {{ $t('actions.edit') }}
+        </v-btn>
+        <v-btn
+          variant="tonal"
+          color="primary"
+          prepend-icon="mdi-qrcode"
+          :disabled="!item.inbounds?.length"
+          @click="showQrCode(item.id)"
+        >
+          {{ $t('setting.sub') }}
+        </v-btn>
+        <v-menu location="top end">
+          <template #activator="{ props }">
+            <v-btn
+              v-bind="props"
+              icon="mdi-dots-horizontal"
+              variant="text"
+              :aria-label="$t('magicnet.moreActions')"
+            />
+          </template>
+          <v-list>
+            <v-list-item
+              v-if="Data().enableTraffic"
+              prepend-icon="mdi-chart-line"
+              :title="$t('stats.graphTitle')"
+              @click="showStats(item.name)"
+            />
+            <v-list-item
+              v-if="isOnline(item.name).value"
+              prepend-icon="mdi-lan-connect"
+              :title="$t('sessions.title')"
+              @click="showSessions(item.name)"
+            />
+            <v-list-item
+              prepend-icon="mdi-delete-outline"
+              base-color="error"
+              :title="$t('actions.del')"
+              @click="mobileDelete = item"
+            />
+          </v-list>
+        </v-menu>
+      </footer>
+    </article>
+    <p
+      v-if="!displayedClients.length"
+      class="mn-surface mn-empty"
+    >
+      {{ $t('magicnet.noMatches') }}
+    </p>
+    <v-pagination
+      v-if="displayedClients.length > 10"
+      v-model="mobilePage"
+      :length="Math.ceil(displayedClients.length / 10)"
+      :total-visible="4"
+    />
+  </section>
+  <v-dialog
+    :model-value="!!mobileDelete"
+    max-width="400"
+    @update:model-value="!$event && (mobileDelete = null)"
+  >
+    <v-card :title="$t('actions.del')">
+      <v-card-text>{{ $t('confirm') }} {{ mobileDelete ? clientLabel(mobileDelete) : '' }}</v-card-text>
+      <v-card-actions>
+        <v-spacer /><v-btn @click="mobileDelete = null">
+          {{ $t('no') }}
+        </v-btn><v-btn
+          color="error"
+          :loading="deleting"
+          @click="removeMobileClient"
+        >
+          {{ $t('yes') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <v-row v-if="!smAndDown">
     <v-col cols="12">
       <v-data-table
         :headers="headers"
-        :items="filterSettings.enabled ? filterSettings.filteredClients : clients"
+        :items="displayedClients"
         :hide-default-footer="filterSettings.enabled ? filterSettings.filteredClients.length<=10 : clients.length<=10"
         :items-per-page="itemPerPage"
         hide-no-data
@@ -228,9 +366,15 @@
         :mobile="smAndDown"
         mobile-breakpoint="sm"
         width="100%"
-        class="elevation-3 rounded"
+        class="mn-client-table"
         @update:items-per-page="setItemPerPage($event)"
       >
+        <template #item.name="{ item }">
+          <strong class="mn-client-name">{{ clientLabel(item) }}</strong><code
+            v-if="clientLabel(item) !== item.name"
+            class="mn-client-id"
+          >{{ item.name }}</code>
+        </template>
         <template #item.enable="{ item }">
           <v-switch
             :model-value="item.enable"
@@ -430,13 +574,21 @@ import Stats from '@/layouts/modals/Stats.vue'
 import Sessions from '@/layouts/modals/Sessions.vue'
 import { Client } from '@/types/clients'
 import { Inbound } from '@/types/inbounds'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { HumanReadable } from '@/plugins/utils'
 import { i18n, locale } from '@/locales'
 import { useDisplay } from 'vuetify'
 import HttpUtils from '@/plugins/httputil'
 
 const { smAndDown } = useDisplay()
+const route = useRoute()
+const router = useRouter()
+const search = ref('')
+const mobilePage = ref(1)
+const mobileDelete = ref<ClientRow | null>(null)
+const deleting = ref(false)
+const clientLabel = (client: Client) => client.remark || client.desc || client.name
 
 // A client as it comes back from the panel: saved, so it carries the id and
 // the timestamps that only a client built in the browser is still without.
@@ -467,7 +619,6 @@ const inboundTags = computed((): { title: string, value: number }[] => {
 
 const groups = computed((): string[] => {
   if (!clients.value) return []
-  if (filterSettings?.value.enabled) return Array.from(new Set(filterSettings.value.filteredClients?.map(c => c.group)))
   return Array.from(new Set(clients.value?.map(c => c.group)))
 })
 
@@ -506,6 +657,39 @@ const headers = [
 ]
 
 const itemPerPage = ref(localStorage.getItem('items-per-page') || '10')
+
+const displayedClients = computed(() => {
+  const filter = filterSettings.value
+  const text = [search.value, filter.enabled ? filter.text : ''].filter(Boolean).map(s => s.toLowerCase())
+  return clients.value.filter(client => {
+    const haystack = [client.name, client.remark, client.desc, client.group].filter(Boolean).join(' ').toLowerCase()
+    if (!text.every(query => haystack.includes(query))) return false
+    if (!filter.enabled) return true
+    if (filter.group !== '-' && client.group !== filter.group) return false
+    if (filter.state === 'disable' && client.enable) return false
+    if (filter.state === 'expired' && !(client.expiry > 0 && client.expiry < Date.now() / 1000)) return false
+    if (filter.state === 'online' && !Data().onlines?.user?.includes(client.name)) return false
+    return true
+  })
+})
+const mobileClients = computed(() => displayedClients.value.slice((mobilePage.value - 1) * 10, mobilePage.value * 10))
+watch([search, () => filterSettings.value.enabled, () => displayedClients.value.length], () => { mobilePage.value = 1 })
+
+onMounted(async () => {
+  if (route.query.add === '1') {
+    await Data().loadData()
+    showModal(0)
+    router.replace({ path: '/clients' })
+  }
+})
+const removeMobileClient = async () => {
+  if (!mobileDelete.value || deleting.value) return
+  deleting.value = true
+  try {
+    const ok = await Data().save('clients', 'del', mobileDelete.value.id)
+    if (ok) mobileDelete.value = null
+  } finally { deleting.value = false }
+}
 
 const setItemPerPage = (items: number) => {
   itemPerPage.value = items.toString()
@@ -670,12 +854,3 @@ const percent = (c: Client) => { return c.volume>0 ? Math.round((c.up+c.down) *1
 const percentColor = (c: Client) => { return (c.up+c.down) >= c.volume ? 'error' : percent(c)>90 ? 'warning' : 'success' }
 
 </script>
-<style>
-.v-data-table__tr--mobile td {
-  height: fit-content;
-  min-height: 36px !important;
-}
-.v-data-table__tr--mobile td div {
-  width:max-content;
-}
-</style>

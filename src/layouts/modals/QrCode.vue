@@ -1,210 +1,164 @@
 <template>
   <v-dialog
+    class="mn-editor-dialog"
     transition="dialog-bottom-transition"
-    width="400"
+    width="460"
   >
     <v-card
       id="qrcode-modal"
-      class="rounded-lg"
       :loading="loading"
     >
       <v-card-title>
-        <v-row>
-          <v-col>QrCode</v-col>
-          <v-spacer />
-          <v-col cols="auto">
-            <v-icon
-              :aria-label="$t('actions.close')"
-              icon="mdi-close-box"
-              @click="$emit('close')"
-            />
-          </v-col>
-        </v-row>
+        {{ $t('setting.sub') }}
+        <v-btn
+          class="float-right"
+          icon="mdi-close"
+          variant="text"
+          :aria-label="$t('actions.close')"
+          @click="$emit('close')"
+        />
       </v-card-title>
       <v-divider />
-      <v-skeleton-loader
-        v-if="loading"
-        class="mx-auto border"
-        width="80%"
-        type="text, image, divider, text, image"
-      />
-      <v-card-text
-        style="overflow-y: auto; padding: 0"
-        :hidden="loading"
-      >
-        <v-tabs
-          v-model="tab"
-          density="compact"
-          fixed-tabs
-          align-tabs="center"
+      <v-card-text>
+        <v-skeleton-loader
+          v-if="loading"
+          type="image, text"
+        />
+        <v-alert
+          v-else-if="failed"
+          type="warning"
+          variant="tonal"
         >
-          <v-tab value="sub">
-            {{ $t('setting.sub') }}
-          </v-tab>
-          <v-tab value="link">
-            {{ $t('client.links') }}
-          </v-tab>
-        </v-tabs>
-        <v-window
-          v-model="tab"
-          style="margin-top: 10px;"
-        >
-          <v-window-item value="sub">
-            <v-row>
-              <v-col style="text-align: center;">
-                <v-chip>{{ $t('setting.sub') }}</v-chip><br>
-                <QrcodeVue
-                  :value="clientSub"
-                  :size="size"
-                  :margin="1"
-                  style="border-radius: 1rem; cursor: copy;"
-                  @click="copyToClipboard(clientSub)"
-                />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col style="text-align: center;">
-                <v-chip>{{ $t('setting.jsonSub') }}</v-chip><br>
-                <QrcodeVue
-                  :value="clientSub + '?format=json'"
-                  :size="size"
-                  :margin="1"
-                  style="border-radius: 1rem; cursor: copy;"
-                  @click="copyToClipboard(clientSub + '?format=json')"
-                />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col style="text-align: center;">
-                <v-chip>{{ $t('setting.clashSub') }}</v-chip><br>
-                <QrcodeVue
-                  :value="clientSub + '?format=clash'"
-                  :size="size"
-                  :margin="1"
-                  style="border-radius: 1rem; cursor: copy;"
-                  @click="copyToClipboard(clientSub + '?format=clash')"
-                />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col style="text-align: center;">
-                <v-chip>SING-BOX (scan only)</v-chip><br>
-                <QrcodeVue
-                  :value="singbox"
-                  :size="size"
-                  :margin="1"
-                  style="border-radius: .8rem; cursor: not-allowed;"
-                />
-              </v-col>
-            </v-row>
-          </v-window-item>
-          <v-window-item value="link">
-            <v-row
-              v-for="(l, index) in clientLinks"
-              :key="index"
+          {{ $t('magicnet.loadFailed') }}
+        </v-alert>
+        <template v-else>
+          <div class="mn-subscription-controls">
+            <h2 class="mn-client-name">
+              {{ client.remark || client.desc || client.name }}
+            </h2>
+            <v-select
+              v-model="format"
+              :items="formats"
+              :label="$t('magicnet.clientApp')"
+              hide-details
+              class="mt-5"
+            />
+          </div>
+          <div class="mn-qr-container">
+            <QrcodeVue
+              :value="subscription"
+              :size="280"
+              :margin="3"
+              render-as="svg"
+            />
+            <p
+              class="mn-subscription-link"
+              dir="ltr"
             >
-              <v-col style="text-align: center;">
-                <v-chip>{{ l.remark?? $t('client.' + l.type) }}</v-chip><br>
-                <QrcodeVue
-                  :value="l.uri"
-                  :size="size"
-                  :margin="1"
-                  style="border-radius: .5rem; cursor: copy;"
-                  @click="copyToClipboard(l.uri)"
-                />
-              </v-col>
-            </v-row>
-          </v-window-item>
-        </v-window>
+              {{ subscription }}
+            </p>
+          </div>
+          <v-expansion-panels variant="accordion">
+            <v-expansion-panel :title="$t('client.links')">
+              <v-expansion-panel-text>
+                <div
+                  v-for="(link, index) in client.links || []"
+                  :key="index"
+                  class="mb-4"
+                >
+                  <p>{{ link.remark || link.type }}</p>
+                  <v-btn
+                    variant="tonal"
+                    block
+                    prepend-icon="mdi-content-copy"
+                    @click="copy(link.uri)"
+                  >
+                    {{ $t('copyToClipboard') }}
+                  </v-btn>
+                </div>
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-expansion-panels>
+        </template>
       </v-card-text>
+      <v-card-actions>
+        <v-btn
+          color="primary"
+          variant="flat"
+          block
+          prepend-icon="mdi-content-copy"
+          :disabled="loading || failed"
+          @click="copy(subscription)"
+        >
+          {{ $t('magicnet.copySubscription') }}
+        </v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue'
 import QrcodeVue from 'qrcode.vue'
-import Data from '@/store/modules/data'
 import Clipboard from 'clipboard'
-import { i18n } from '@/locales'
 import { push } from 'notivue'
-import { Client } from '@/types/clients'
-
-export default {
-  components: { QrcodeVue },
-  props: {
-    id: { type: Number, required: true },
-    visible: { type: Boolean, required: true },
-  },
-  emits: ['close'],
-  data() {
-    return {
-      tab: "sub",
-      client: <Client>{},
-      loading: false,
-    }
-  },
-  computed: {
-    clientSub() {
-      return Data().subURI + this.client.name
-    },
-    singbox() {
-      const url = Data().subURI + this.client.name + "?format=json"
-      return "sing-box://import-remote-profile?url=" +  encodeURIComponent(url) + "#" + this.client.name
-    },
-    clientLinks() {
-      return this.client.links?? []
-    },
-    size() {
-      if (window.innerWidth > 380) return 300
-      if (window.innerWidth > 330) return 280
-      return 250
-    }
-  },
-  watch: {
-    visible(v) {
-      if (v) {
-        this.tab = "sub"
-        this.load()
-      }
-    },
-  },
-  methods: {
-    async load() {
-      this.loading = true
-      const newData = await Data().loadClients(this.$props.id)
-      this.client = newData
-      this.loading = false
-    },
-    copyToClipboard(txt:string) {
-      const hiddenButton = document.createElement('button')
-      hiddenButton.className = 'clipboard-btn'
-      document.body.appendChild(hiddenButton)
-
-      const clipboard = new Clipboard('.clipboard-btn', {
-        text: () => txt,
-        container: document.getElementById('qrcode-modal')?? undefined
-      });
-
-      clipboard.on('success', () => {
-        clipboard.destroy()
-        push.success({
-          message: i18n.global.t('success') + ": " + i18n.global.t('copyToClipboard'),
-          duration: 5000,
-        })
-      })
-
-      clipboard.on('error', () => {
-        clipboard.destroy()
-        push.error({
-          message: i18n.global.t('failed') + ": " + i18n.global.t('copyToClipboard'),
-          duration: 5000,
-        })
-      })
-
-      // Perform click on hidden button to trigger copy
-      hiddenButton.click()
-      document.body.removeChild(hiddenButton)
+import { i18n } from '@/locales'
+import Data from '@/store/modules/data'
+import type { Client } from '@/types/clients'
+const props = defineProps<{ id: number; visible: boolean }>()
+defineEmits<{ close: [] }>()
+const client = ref<Client>({} as Client)
+const loading = ref(false)
+const failed = ref(false)
+const format = ref('shadowrocket')
+let generation = 0
+const bridge = computed(() => Data().subURI.includes('/subscribe-'))
+const formats = computed(() => bridge.value ? [
+  { title: 'Shadowrocket', value: 'shadowrocket' },
+  { title: 'Clash / Mihomo', value: 'clash' },
+  { title: 'Surge', value: 'surge-config' },
+  { title: i18n.global.t('magicnet.shadowrocketRules'), value: 'shadowrocket-config' },
+] : [
+  { title: i18n.global.t('setting.sub'), value: 'shadowrocket' },
+  { title: 'Clash / Mihomo', value: 'clash' },
+  { title: 'sing-box JSON', value: 'json' },
+])
+const subscription = computed(() => {
+  const base = Data().subURI + encodeURIComponent(client.value.name || '')
+  if (!bridge.value) return base + (format.value === 'shadowrocket' ? '' : '?format=' + format.value)
+  const file = format.value === 'shadowrocket' ? '/MagicNet.txt' : format.value === 'shadowrocket-config' ? '/MagicNet.yaml' : '/MagicNet'
+  return base + file + '?format=' + format.value
+})
+watch(() => props.visible, async visible => {
+  const request = ++generation
+  if (!visible) return
+  loading.value = true
+  failed.value = false
+  format.value = 'shadowrocket'
+  const result = await Data().loadClients(props.id)
+  if (request !== generation) return
+  client.value = result
+  failed.value = !result?.id
+  loading.value = false
+}, { immediate: true })
+async function copy(value: string) {
+  if (window.isSecureContext && navigator.clipboard) {
+    try {
+      await navigator.clipboard.writeText(value)
+      push.success({ message: i18n.global.t('copyToClipboard') })
+      return
+    } catch {
+      // Keep older Safari and HTTP installations usable through the legacy path.
     }
   }
+  const button = document.createElement('button')
+  button.className = 'mn-clipboard-trigger'
+  button.hidden = true
+  document.body.appendChild(button)
+  const clipboard = new Clipboard(button, { text: () => value, container: document.getElementById('qrcode-modal') || undefined })
+  clipboard.on('success', () => { clipboard.destroy(); push.success({ message: i18n.global.t('copyToClipboard') }) })
+  clipboard.on('error', () => { clipboard.destroy(); push.error({ message: i18n.global.t('failed') + ': ' + i18n.global.t('copyToClipboard') }) })
+  button.click()
+  button.remove()
 }
 </script>

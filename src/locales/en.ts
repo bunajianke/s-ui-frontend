@@ -1,4 +1,24 @@
 export default {
+  magicnet: {
+    "overview": "Overview",
+    "running": "Proxy running",
+    "stopped": "Proxy unavailable",
+    "addUser": "Add user",
+    "accounts": "Accounts",
+    "accountUsage": "Account usage",
+    "userTraffic": "Traffic by account",
+    "noUsers": "No users yet",
+    "noMatches": "No matching users",
+    "loadFailed": "Unable to load. Check your connection and retry.",
+    "advancedMonitoring": "System monitoring and tools",
+    "searchUsers": "Search users",
+    "moreActions": "More actions",
+    "navigation": "Main navigation",
+    "clientApp": "Client",
+    "copySubscription": "Copy subscription link",
+    "shadowrocketRules": "Shadowrocket · with rules"
+},
+
   success: "success",
   failed: "failed",
   enable: "Enable",

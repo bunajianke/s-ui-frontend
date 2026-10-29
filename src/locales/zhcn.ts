@@ -1,4 +1,24 @@
 export default {
+  magicnet: {
+    "overview": "运行概览",
+    "running": "代理运行中",
+    "stopped": "代理未运行",
+    "addUser": "添加用户",
+    "accounts": "账号",
+    "accountUsage": "账号已用流量",
+    "userTraffic": "用户流量",
+    "noUsers": "暂无用户",
+    "noMatches": "没有匹配的用户",
+    "loadFailed": "加载失败，请检查连接后重试。",
+    "advancedMonitoring": "系统监控与工具",
+    "searchUsers": "搜索用户、备注或分组",
+    "moreActions": "更多操作",
+    "navigation": "主要导航",
+    "clientApp": "客户端",
+    "copySubscription": "复制订阅链接",
+    "shadowrocketRules": "Shadowrocket · 含分流规则"
+},
+
   success: "成功",
   failed: "失败",
   enable: "启用",

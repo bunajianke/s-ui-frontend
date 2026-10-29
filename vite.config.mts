@@ -59,7 +59,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/app/api': {
-        target: 'http://localhost:2095',
+        target: process.env.SUI_DEV_API || 'http://localhost:2095',
         changeOrigin: false,
       },
     },

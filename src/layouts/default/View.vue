@@ -1,6 +1,8 @@
 <template>
   <v-main>
-    <router-view />
+    <div class="mn-page-shell">
+      <router-view />
+    </div>
   </v-main>
 </template>
 

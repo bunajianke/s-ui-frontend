@@ -2,15 +2,14 @@
   <v-navigation-drawer
     v-model="showDrawer"
     :temporary="isMobile"
-    :expand-on-hover="!isMobile"
-    :rail="!isMobile"
+    :width="224"
     :permanent="!isMobile"
     @click="isMobile ? $emit('toggleDrawer') : null"
   >
     <v-list-item
       height="63"
       prepend-avatar="@/assets/logo.svg"
-      title="S-UI"
+      title="MagicNet"
     >
       <template
         v-if="isMobile"
@@ -55,10 +54,13 @@ import router from '@/router'
 import { logout } from '@/plugins/httputil'
 
 const props = defineProps<{ isMobile: boolean, displayDrawer: boolean }>()
-defineEmits<{ toggleDrawer: [] }>()
+const emit = defineEmits<{ toggleDrawer: [] }>()
 
-const showDrawer = computed((): boolean => {
-  return props.displayDrawer
+const showDrawer = computed({
+  get: () => props.displayDrawer,
+  set: (visible: boolean) => {
+    if (visible !== props.displayDrawer) emit('toggleDrawer')
+  },
 })
 
 const menu = [

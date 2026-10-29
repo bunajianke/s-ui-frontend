@@ -1,4 +1,24 @@
 export default {
+  magicnet: {
+    "overview": "執行概覽",
+    "running": "代理執行中",
+    "stopped": "代理未執行",
+    "addUser": "新增使用者",
+    "accounts": "帳號",
+    "accountUsage": "帳號已用流量",
+    "userTraffic": "使用者流量",
+    "noUsers": "尚無使用者",
+    "noMatches": "沒有符合的使用者",
+    "loadFailed": "載入失敗，請檢查連線後重試。",
+    "advancedMonitoring": "系統監控與工具",
+    "searchUsers": "搜尋使用者、備註或群組",
+    "moreActions": "更多操作",
+    "navigation": "主要導覽",
+    "clientApp": "用戶端",
+    "copySubscription": "複製訂閱連結",
+    "shadowrocketRules": "Shadowrocket · 含分流規則"
+},
+
   success: "成功",
   failed: "失敗",
   enable: "啟用",

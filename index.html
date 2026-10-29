@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" href="assets/favicon.ico" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link rel="manifest" href="assets/manifest.webmanifest" />
   <meta name="theme-color" content="#121212" />
   <link rel="apple-touch-icon" href="assets/icon-192.png" />
@@ -17,6 +17,9 @@
 
     // Dev Mode
     if (window.BASE_URL.charAt(0) === '{') window.BASE_URL = "/app/"
+    const baseElement = document.createElement('base')
+    baseElement.href = window.BASE_URL
+    document.head.appendChild(baseElement)
   </script>
   <title>S-UI</title>
 </head>

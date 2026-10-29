@@ -1,5 +1,6 @@
 <template>
   <v-dialog
+    class="mn-editor-dialog"
     transition="dialog-bottom-transition"
     width="800"
   >
@@ -9,6 +10,13 @@
     >
       <v-card-title>
         {{ $t('actions.' + title) + " " + $t('objects.client') }}
+        <v-btn
+          class="float-right"
+          icon="mdi-close"
+          variant="text"
+          :aria-label="$t('actions.close')"
+          @click="closeModal"
+        />
       </v-card-title>
       <v-divider />
       <v-skeleton-loader
